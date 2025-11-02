@@ -1,11 +1,20 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
-from app.models.appointment import Appointment, TurnoEstado
+from datetime import datetime, timedelta
+from datetime import datetime, timedelta
 from typing import List, Optional
+
+from sqlalchemy import select, or_
+from sqlalchemy.orm import Session
+
+from app.models.appointment import Appointment, TurnoEstado
 
 class AppointmentRepo:
     @staticmethod
-    def list(db: Session, medico_id: int | None = None, desde: str | None = None, hasta: str | None = None) -> List[Appointment]:
+    def list(
+        db: Session,
+        medico_id: int | None = None,
+        desde: datetime | None = None,
+        hasta: datetime | None = None,
+    ) -> List[Appointment]:
         stmt = select(Appointment)
         if medico_id:
             stmt = stmt.where(Appointment.medico_id == medico_id)
@@ -19,7 +28,9 @@ class AppointmentRepo:
     @staticmethod
     def create(db: Session, **data) -> Appointment:
         obj = Appointment(**data)
-        db.add(obj); db.commit(); db.refresh(obj)
+        db.add(obj)
+        db.commit()
+        db.refresh(obj)
         return obj
 
     @staticmethod
@@ -29,8 +40,10 @@ class AppointmentRepo:
     @staticmethod
     def update(db: Session, tid: int, **data) -> Appointment:
         obj = db.get(Appointment, tid)
-        for k, v in data.items(): setattr(obj, k, v)
-        db.commit(); db.refresh(obj)
+        for k, v in data.items():
+            setattr(obj, k, v)
+        db.commit()
+        db.refresh(obj)
         return obj
 
     @staticmethod
@@ -40,21 +53,41 @@ class AppointmentRepo:
         db.commit()
 
     @staticmethod
-    def atender(db: Session, tid: int, receta_url: str | None = None):
+    def atender(db: Session, tid: int, receta_url: str | None = None, *, auto_commit: bool = True):
         obj = db.get(Appointment, tid)
         obj.estado = TurnoEstado.Atendido
-        if receta_url: obj.receta_url = receta_url
-        db.commit()
+        if receta_url:
+            obj.receta_url = receta_url
+        if auto_commit:
+            db.commit()
 
     @staticmethod
-    def overlaps(db: Session, medico_id: int, inicio: str, fin: str) -> bool:
-        # Solape si: (A.start < B.end) AND (B.start < A.end)
-        stmt = select(Appointment).where(
-            and_(
-                Appointment.medico_id == medico_id,
+    def overlaps(
+        db: Session,
+        doctor_id: int,
+        patient_id: int,
+        inicio: datetime,
+        duracion: int,
+        exclude_id: Optional[int] = None,
+    ) -> bool:
+        fin = inicio + timedelta(minutes=duracion)
+        stmt = (
+            select(Appointment)
+            .where(
                 Appointment.estado != TurnoEstado.Cancelado,
-                Appointment.fecha < fin,
-                inicio < Appointment.fecha  # comparar strings ISO YYYY-MM-DDTHH:MM funciona lexical
+                or_(
+                    Appointment.medico_id == doctor_id,
+                    Appointment.paciente_id == patient_id,
+                ),
             )
+            .order_by(Appointment.fecha)
         )
-        return db.execute(stmt).first() is not None
+        if exclude_id:
+            stmt = stmt.where(Appointment.id != exclude_id)
+
+        candidates = db.execute(stmt).scalars().all()
+        for ap in candidates:
+            ap_end = ap.fecha + timedelta(minutes=ap.duracion_min)
+            if ap.fecha < fin and inicio < ap_end:
+                return True
+        return False

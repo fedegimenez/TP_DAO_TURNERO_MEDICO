@@ -1,7 +1,22 @@
-<form hx-post="/medicos/crear" hx-target="#doctors-table" hx-swap="outerHTML">
+{% set selected = (values.get('specialties') or []) | map(attribute='id') | list %}
+{% set avail = namespace(data={}) %}
+{% for av in values.get('availability') or [] %}
+  {% set _ = avail.data.update({av.day_of_week: av}) %}
+{% endfor %}
+{% set days = [
+  (0, 'Lunes'),
+  (1, 'Martes'),
+  (2, 'Miércoles'),
+  (3, 'Jueves'),
+  (4, 'Viernes'),
+  (5, 'Sábado'),
+  (6, 'Domingo')
+] %}
+<form hx-post="{{ action }}" hx-target="#doctors-table" hx-swap="outerHTML">
   {% if error %}
   <div class="alert-error mb-3">{{ error }}</div>
   {% endif %}
+  <h3 class="text-lg font-semibold mb-3">{{ title or 'Médico' }}</h3>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
     <div>
       <label class="lbl">Nombre</label>
@@ -11,10 +26,12 @@
       <label class="lbl">Apellido</label>
       <input name="apellido" class="input" required value="{{ (values or {}).get('apellido','') }}">
     </div>
+    {% if not editing %}
     <div>
       <label class="lbl">DNI</label>
       <input name="dni" class="input" required value="{{ (values or {}).get('dni','') }}">
     </div>
+    {% endif %}
     <div>
       <label class="lbl">Email</label>
       <input name="email" type="email" class="input" value="{{ (values or {}).get('email','') }}">
@@ -23,12 +40,58 @@
       <label class="lbl">Teléfono</label>
       <input name="telefono" class="input" value="{{ (values or {}).get('telefono','') }}">
     </div>
+    <div>
+      <label class="lbl">Dirección</label>
+      <input name="direccion" class="input" value="{{ (values or {}).get('direccion','') }}">
+    </div>
+    <div>
+      <label class="lbl">Género</label>
+      <input name="genero" class="input" value="{{ (values or {}).get('genero','') }}">
+    </div>
     <div class="md:col-span-2">
       <label class="lbl">Matrícula</label>
-      <input name="matricula" class="input" required value="{{ (values or {}).get('matricula','') }}">
+      <input name="matricula" class="input" required value="{{ (values or {}).get('matricula','') }}" {% if editing %}disabled{% endif %}>
+    </div>
+    <div class="md:col-span-2">
+      <label class="lbl">Especialidades</label>
+      <select name="specialty_ids" class="input" multiple size="{{ specialties|length if specialties|length < 6 else 6 }}" required>
+        {% for esp in specialties %}
+        <option value="{{ esp.id }}" {% if esp.id in selected %}selected{% endif %}>{{ esp.nombre }}</option>
+        {% endfor %}
+      </select>
+      <p class="text-xs text-slate-500 mt-1">Usá Ctrl/Cmd para seleccionar múltiples opciones.</p>
     </div>
   </div>
-  <div class="mt-4 text-right">
+  <div class="mt-4">
+    <div class="font-semibold text-sm text-slate-700 mb-2">Disponibilidad semanal</div>
+    <div class="grid md:grid-cols-2 gap-3">
+      {% for id, label in days %}
+      {% set day = avail.data.get(id) %}
+      <div class="border border-slate-200 rounded-lg p-3">
+        <label class="flex items-center gap-2 text-sm font-medium text-slate-700">
+          <input type="checkbox" name="day_{{ id }}_active" value="1" class="checkbox" {% if day %}checked{% endif %}>
+          {{ label }}
+        </label>
+        <div class="mt-2 grid grid-cols-2 gap-2">
+          <div>
+            <span class="text-xs text-slate-500">Desde</span>
+            <input type="time" name="day_{{ id }}_start" class="input" value="{{ day.start_time if day else '' }}">
+          </div>
+          <div>
+            <span class="text-xs text-slate-500">Hasta</span>
+            <input type="time" name="day_{{ id }}_end" class="input" value="{{ day.end_time if day else '' }}">
+          </div>
+        </div>
+        <div class="mt-2">
+          <span class="text-xs text-slate-500">Duración (min)</span>
+          <input type="number" min="10" step="5" name="day_{{ id }}_slot" class="input" value="{{ day.slot_minutes if day else 30 }}">
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="mt-4 flex justify-between items-center">
+    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
     <button class="btn-primary">Guardar</button>
   </div>
 </form>

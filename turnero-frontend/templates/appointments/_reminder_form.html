@@ -1,0 +1,51 @@
+<div class="space-y-4">
+  <div>
+    <h3 class="text-lg font-semibold text-slate-800">Programar recordatorio</h3>
+    <p class="text-sm text-slate-500">Turno del {{ turno.fecha[:10] }} a las {{ turno.fecha[11:16] }} hs.</p>
+  </div>
+  {% if success %}
+  <div class="alert-success">{{ success }}</div>
+  {% endif %}
+  {% if error %}
+  <div class="alert-error">{{ error }}</div>
+  {% endif %}
+  <form hx-post="/turnos/recordatorio/{{ turno.id }}" hx-target="#modal-body" hx-swap="innerHTML" class="space-y-3">
+    <div>
+      <label class="lbl">Canal</label>
+      <select name="canal" class="input">
+        {% for value, label in [('EMAIL','Email'), ('SMS','SMS'), ('PUSH','Notificación')] %}
+        <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="lbl">Fecha</label>
+        <input type="date" name="fecha" class="input" required>
+      </div>
+      <div>
+        <label class="lbl">Hora</label>
+        <input type="time" name="hora" class="input" required>
+      </div>
+    </div>
+    <div class="flex justify-between items-center pt-2">
+      <button type="button" class="btn" onclick="closeModal()">Cerrar</button>
+      <button class="btn-primary">Programar</button>
+    </div>
+  </form>
+  <div class="border border-slate-200 rounded-xl p-3">
+    <div class="font-semibold text-sm text-slate-700 mb-2">Recordatorios programados</div>
+    {% if recordatorios %}
+    <ul class="space-y-2 text-sm">
+      {% for r in recordatorios %}
+      <li class="flex items-center justify-between">
+        <span>{{ r.canal }} · {{ r.programado_para[:16].replace('T', ' ') }}</span>
+        <span class="badge {{ 'badge-success' if r.estado == 'ENVIADO' else 'badge-info' if r.estado == 'PENDIENTE' else 'badge-muted' }}">{{ r.estado }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="text-xs text-slate-500">No hay recordatorios configurados.</div>
+    {% endif %}
+  </div>
+</div>

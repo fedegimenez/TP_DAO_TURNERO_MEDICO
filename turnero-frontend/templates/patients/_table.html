@@ -2,21 +2,49 @@
   <table class="table">
     <thead>
       <tr>
-        <th>Nombre</th><th>Apellido</th><th>DNI</th><th>Email</th><th>Teléfono</th><th>Estado</th><th></th>
+        <th>Paciente</th>
+        <th>DNI</th>
+        <th>Nacimiento</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for p in pacientes %}
       <tr>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.apellido }}</td>
+        <td>
+          <div class="font-semibold text-slate-800">{{ p.apellido }}, {{ p.nombre }}</div>
+          <div class="text-xs text-slate-500">Obra social: {{ p.obra_social or '—' }}</div>
+        </td>
         <td>{{ p.dni }}</td>
-        <td>{{ p.email }}</td>
-        <td>{{ p.telefono }}</td>
-        <td>{% if p.activo %}<span class="badge badge-success">Activo</span>{% else %}<span class="badge badge-muted">Inactivo</span>{% endif %}</td>
-        <td class="text-right">
-          <button class="btn" hx-post="/pacientes/toggle/{{ p.id }}" hx-vals='{"activo":"{{ "false" if p.activo else "true" }}"}'
-                  hx-target="#patients-table" hx-swap="outerHTML"> {{ "Desactivar" if p.activo else "Activar" }} </button>
+        <td>{{ p.fecha_nacimiento }}</td>
+        <td>{{ p.email or '—' }}</td>
+        <td>{{ p.telefono or '—' }}</td>
+        <td>
+          {% if p.activo %}
+            <span class="badge badge-success">Activo</span>
+          {% else %}
+            <span class="badge badge-muted">Inactivo</span>
+          {% endif %}
+        </td>
+        <td class="text-right space-x-2">
+          <button class="btn-secondary"
+                  hx-get="/pacientes/{{ p.id }}/form"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Editar</button>
+          <button class="btn"
+                  hx-get="/pacientes/{{ p.id }}/historial"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Historial</button>
+          <button class="btn"
+                  hx-post="/pacientes/toggle/{{ p.id }}"
+                  hx-vals='{"activo":"{{ "false" if p.activo else "true" }}"}'
+                  hx-target="#patients-table"
+                  hx-swap="outerHTML">{{ "Desactivar" if p.activo else "Activar" }}</button>
         </td>
       </tr>
       {% else %}

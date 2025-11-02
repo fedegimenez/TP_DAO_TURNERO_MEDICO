@@ -3,5 +3,9 @@ function closeModal(){ const m=document.getElementById('modal'); m.classList.rem
 window.openModal = openModal; window.closeModal = closeModal;
 
 document.addEventListener('htmx:afterSwap', (e) => {
-  if (e.detail.target && (e.detail.target.id === 'patients-table' || e.detail.target.id === 'doctors-table')) closeModal();
+  if (!e.detail.target) return;
+  const closable = ['patients-table', 'doctors-table', 'appointments-table'];
+  if (closable.includes(e.detail.target.id)) {
+    closeModal();
+  }
 });
