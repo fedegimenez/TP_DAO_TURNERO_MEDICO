@@ -1,0 +1,77 @@
+<div class="card">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold text-slate-800">Turnos próximos</h3>
+    <span class="text-xs text-slate-500">Actualizado {{ now_iso }}</span>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Paciente</th>
+        <th>Médico</th>
+        <th>Especialidad</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in turnos %}
+      <tr>
+        <td>
+          <div class="font-semibold text-slate-800">{{ t.fecha[:10] }}</div>
+          <div class="text-xs text-slate-500">{{ t.fecha[11:16] }} hs</div>
+        </td>
+        <td>{{ pacientes_map.get(t.paciente_id, t.paciente_id) }}</td>
+        <td>{{ medicos_map.get(t.medico_id, t.medico_id) }}</td>
+        <td>{{ especialidades_map.get(t.especialidad_id, t.especialidad_id) }}</td>
+        <td>
+          {% if t.estado == 'Reservado' %}
+            <span class="badge badge-info">Reservado</span>
+          {% elif t.estado == 'Cancelado' %}
+            <span class="badge badge-muted">Cancelado</span>
+          {% elif t.estado == 'Atendido' %}
+            <span class="badge badge-success">Atendido</span>
+          {% else %}
+            <span class="badge">{{ t.estado }}</span>
+          {% endif %}
+        </td>
+        <td class="text-right space-x-2">
+          {% if t.estado != 'Cancelado' %}
+          <button class="btn-secondary"
+                  hx-get="/turnos/{{ t.id }}/form"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Editar</button>
+          {% endif %}
+          {% if t.estado == 'Reservado' and t.fecha <= now_iso %}
+          <button class="btn"
+                  hx-get="/turnos/{{ t.id }}/consulta-form"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Registrar atención</button>
+          {% endif %}
+          {% if t.estado == 'Reservado' %}
+          <button class="btn"
+                  hx-get="/turnos/recordatorio-form/{{ t.id }}"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Recordatorio</button>
+          <button class="btn"
+                  hx-post="/turnos/cancelar/{{ t.id }}"
+                  hx-target="#appointments-table"
+                  hx-swap="outerHTML">Cancelar</button>
+          {% elif t.estado == 'Atendido' %}
+          <button class="btn"
+                  hx-get="/pacientes/{{ t.paciente_id }}/historial"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Ver historial</button>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" class="text-center text-slate-500 py-6">No hay turnos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

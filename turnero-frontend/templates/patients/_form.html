@@ -1,7 +1,8 @@
-<form hx-post="/pacientes/crear" hx-target="#patients-table" hx-swap="outerHTML">
+<form hx-post="{{ action }}" hx-target="#patients-table" hx-swap="outerHTML">
   {% if error %}
   <div class="alert-error mb-3">{{ error }}</div>
   {% endif %}
+  <h3 class="text-lg font-semibold mb-3">{{ title or 'Paciente' }}</h3>
   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
     <div>
       <label class="lbl">Nombre</label>
@@ -11,13 +12,19 @@
       <label class="lbl">Apellido</label>
       <input name="apellido" class="input" required value="{{ (values or {}).get('apellido','') }}">
     </div>
+    {% if not editing %}
     <div>
       <label class="lbl">DNI</label>
       <input name="dni" class="input" required value="{{ (values or {}).get('dni','') }}">
     </div>
+    {% endif %}
     <div>
       <label class="lbl">Fecha de nacimiento</label>
       <input name="fecha_nacimiento" type="date" class="input" required value="{{ (values or {}).get('fecha_nacimiento','') }}">
+    </div>
+    <div>
+      <label class="lbl">Género</label>
+      <input name="genero" class="input" value="{{ (values or {}).get('genero','') }}">
     </div>
     <div>
       <label class="lbl">Dirección</label>
@@ -40,7 +47,8 @@
       <input name="nro_afiliado" class="input" value="{{ (values or {}).get('nro_afiliado','') }}">
     </div>
   </div>
-  <div class="mt-4 text-right">
+  <div class="mt-4 flex justify-between items-center">
+    <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
     <button class="btn-primary">Guardar</button>
   </div>
 </form>

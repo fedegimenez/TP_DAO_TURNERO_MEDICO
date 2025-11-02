@@ -1,0 +1,68 @@
+{% if close_modal %}
+  {% if turnos %}
+  <div id="appointments-table" hx-swap-oob="outerHTML">
+    {% include "appointments/_table.html" with context %}
+  </div>
+  {% endif %}
+  <div class="alert-success">{{ success or 'Turno actualizado' }}</div>
+  <script>window.closeModal && window.closeModal();</script>
+{% else %}
+<div class="space-y-4">
+  <div>
+    <h3 class="text-lg font-semibold text-slate-800">Editar turno</h3>
+    <p class="text-sm text-slate-500">Modificá la asignación o el horario del turno seleccionado.</p>
+  </div>
+  {% if error %}
+  <div class="alert-error">{{ error }}</div>
+  {% endif %}
+  <form hx-post="/turnos/{{ values.id }}/editar" hx-target="#modal-body" hx-swap="innerHTML" class="space-y-3">
+    <input type="hidden" name="id" value="{{ values.id }}">
+    <div>
+      <label class="lbl">Paciente</label>
+      <select class="input" name="paciente_id" required>
+        {% for p in pacientes %}
+        <option value="{{ p.id }}" {% if p.id == values.paciente_id %}selected{% endif %}>{{ p.apellido }}, {{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="lbl">Médico</label>
+      <select class="input" name="medico_id" required>
+        {% for m in medicos %}
+        <option value="{{ m.id }}" {% if m.id == values.medico_id %}selected{% endif %}>{{ m.apellido }}, {{ m.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="lbl">Especialidad</label>
+      <select class="input" name="especialidad_id" required>
+        {% for e in especialidades %}
+        <option value="{{ e.id }}" {% if e.id == values.especialidad_id %}selected{% endif %}>{{ e.nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="lbl">Fecha</label>
+        <input type="date" class="input" name="fecha" required value="{{ values.fecha[:10] }}">
+      </div>
+      <div>
+        <label class="lbl">Hora</label>
+        <input type="time" class="input" name="hora" required value="{{ values.fecha[11:16] }}">
+      </div>
+    </div>
+    <div>
+      <label class="lbl">Duración (min)</label>
+      <select class="input" name="duracion_min">
+        {% for minutes in [20, 30, 45, 60] %}
+        <option value="{{ minutes }}" {% if values.duracion_min == minutes %}selected{% endif %}>{{ minutes }} minutos</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="flex justify-between items-center pt-2">
+      <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary">Guardar cambios</button>
+    </div>
+  </form>
+</div>
+{% endif %}

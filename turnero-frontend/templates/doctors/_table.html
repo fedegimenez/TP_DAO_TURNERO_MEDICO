@@ -1,42 +1,60 @@
-<div class="overflow-auto rounded-xl border border-slate-200 bg-white">
-  <table class="min-w-full text-sm">
-    <thead class="bg-slate-50">
+<div class="card">
+  <table class="table">
+    <thead>
       <tr>
-        <th class="th">Nombre</th>
-        <th class="th">Apellido</th>
-        <th class="th">DNI</th>
-        <th class="th">Email</th>
-        <th class="th">Teléfono</th>
-        <th class="th">Matrícula</th>
-        <th class="th">Estado</th>
-        <th class="th"></th>
+        <th>Profesional</th>
+        <th>Contacto</th>
+        <th>Especialidades</th>
+        <th>Disponibilidad</th>
+        <th>Estado</th>
+        <th class="text-right">Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for m in medicos %}
-      <tr class="border-t">
-        <td class="td">{{ m.nombre }}</td>
-        <td class="td">{{ m.apellido }}</td>
-        <td class="td">{{ m.dni }}</td>
-        <td class="td">{{ m.email }}</td>
-        <td class="td">{{ m.telefono }}</td>
-        <td class="td">{{ m.matricula }}</td>
-        <td class="td">
-          {% if m.activo %}<span class="badge-success">Activo</span>
-          {% else %}<span class="badge-muted">Inactivo</span>{% endif %}
+      <tr>
+        <td>
+          <div class="font-semibold text-slate-800">{{ m.apellido }}, {{ m.nombre }}</div>
+          <div class="text-xs text-slate-500">Matrícula {{ m.matricula }}</div>
         </td>
-        <td class="td text-right">
+        <td>
+          <div>{{ m.email or '—' }}</div>
+          <div class="text-xs text-slate-500">{{ m.telefono or '—' }}</div>
+        </td>
+        <td>
+          <ul class="text-xs text-slate-600 space-y-1">
+            {% for esp in m.specialties %}
+            <li class="badge badge-muted">{{ esp.nombre }}</li>
+            {% endfor %}
+          </ul>
+        </td>
+        <td class="text-xs text-slate-500">
+          {% for av in m.availability %}
+          <div>{{ ['Lu','Ma','Mi','Ju','Vi','Sa','Do'][av.day_of_week] }}: {{ av.start_time }} - {{ av.end_time }} ({{ av.slot_minutes }} min)</div>
+          {% endfor %}
+        </td>
+        <td>
+          {% if m.activo %}
+            <span class="badge badge-success">Activo</span>
+          {% else %}
+            <span class="badge badge-muted">Inactivo</span>
+          {% endif %}
+        </td>
+        <td class="text-right space-x-2">
+          <button class="btn-secondary"
+                  hx-get="/medicos/{{ m.id }}/form"
+                  hx-target="#modal-body"
+                  hx-swap="innerHTML"
+                  onclick="openModal()">Editar</button>
           <button class="btn"
                   hx-post="/medicos/toggle/{{ m.id }}"
                   hx-vals='{"activo":"{{ "false" if m.activo else "true" }}"}'
                   hx-target="#doctors-table"
-                  hx-swap="outerHTML">
-            {{ "Desactivar" if m.activo else "Activar" }}
-          </button>
+                  hx-swap="outerHTML">{{ "Desactivar" if m.activo else "Activar" }}</button>
         </td>
       </tr>
       {% else %}
-      <tr><td class="td text-center" colspan="8">Sin datos</td></tr>
+      <tr><td colspan="6" class="text-center text-slate-500 py-6">Sin datos</td></tr>
       {% endfor %}
     </tbody>
   </table>

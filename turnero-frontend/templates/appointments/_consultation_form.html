@@ -1,0 +1,88 @@
+{% if close_modal %}
+  {% if turnos %}
+  <div id="appointments-table" hx-swap-oob="outerHTML">
+    {% include "appointments/_table.html" with context %}
+  </div>
+  {% endif %}
+  <div class="alert-success">{{ success or 'Consulta registrada' }}</div>
+  <script>window.closeModal && window.closeModal();</script>
+{% else %}
+<div class="space-y-4">
+  <div>
+    <h3 class="text-lg font-semibold text-slate-800">Registrar atención</h3>
+    <p class="text-sm text-slate-500">Completá los datos de la consulta realizada el {{ turno.fecha[:16].replace('T', ' ') }}.</p>
+  </div>
+  {% if error %}
+  <div class="alert-error">{{ error }}</div>
+  {% endif %}
+  <form hx-post="/turnos/{{ turno.id }}/consulta" hx-target="#modal-body" hx-swap="innerHTML" class="space-y-3" id="consultation-form">
+    <div>
+      <label class="lbl">Motivo</label>
+      <textarea name="motivo" class="input" rows="2"></textarea>
+    </div>
+    <div>
+      <label class="lbl">Observaciones</label>
+      <textarea name="observaciones" class="input" rows="2"></textarea>
+    </div>
+    <div>
+      <label class="lbl">Diagnóstico</label>
+      <textarea name="diagnostico" class="input" rows="2"></textarea>
+    </div>
+    <div>
+      <label class="lbl">Indicaciones</label>
+      <textarea name="indicaciones" class="input" rows="2"></textarea>
+    </div>
+    <div class="border border-slate-200 rounded-xl p-3 space-y-3" id="prescription-items">
+      <div class="flex items-center justify-between">
+        <span class="font-medium text-sm text-slate-700">Receta (opcional)</span>
+        <button type="button" class="btn" onclick="addPrescriptionItem()">Agregar medicamento</button>
+      </div>
+      <div class="text-xs text-slate-500">Completá los datos solo si se emitió una receta durante la consulta.</div>
+      <div class="space-y-2" id="prescription-list"></div>
+    </div>
+    <div class="flex justify-between items-center pt-2">
+      <button type="button" class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary">Guardar consulta</button>
+    </div>
+  </form>
+</div>
+<script>
+(function(){
+  const list = document.getElementById('prescription-list');
+  if (!list.hasChildNodes()) {
+    addPrescriptionItem();
+  }
+})();
+function addPrescriptionItem(){
+  const list = document.getElementById('prescription-list');
+  const idx = list.children.length;
+  const wrapper = document.createElement('div');
+  wrapper.className = 'grid md:grid-cols-2 gap-2 border border-slate-200 rounded-lg p-3 bg-white/80';
+  wrapper.innerHTML = `
+    <div class="md:col-span-2">
+      <label class="lbl">Medicamento</label>
+      <input class="input" name="medicamento" required>
+    </div>
+    <div>
+      <label class="lbl">Dosis</label>
+      <input class="input" name="dosis">
+    </div>
+    <div>
+      <label class="lbl">Frecuencia</label>
+      <input class="input" name="frecuencia">
+    </div>
+    <div>
+      <label class="lbl">Duración</label>
+      <input class="input" name="duracion">
+    </div>
+    <div class="md:col-span-2">
+      <label class="lbl">Indicaciones</label>
+      <textarea class="input" name="indicaciones_item" rows="2"></textarea>
+    </div>
+    <div class="md:col-span-2 text-right">
+      <button type="button" class="btn" onclick="this.closest('div.grid').remove()">Quitar</button>
+    </div>`;
+  list.appendChild(wrapper);
+}
+</script>
+{% endif %}
