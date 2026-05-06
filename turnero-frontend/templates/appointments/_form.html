@@ -8,6 +8,7 @@
   <div class="alert-error mb-3">{{ error }}</div>
   {% endif %}
   <form hx-post="/turnos/crear" hx-target="#appointment-form" hx-swap="outerHTML" class="space-y-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div>
       <label class="lbl">Paciente</label>
       <select class="input" name="paciente_id" required>

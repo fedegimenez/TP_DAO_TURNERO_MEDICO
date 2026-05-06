@@ -3,6 +3,7 @@ from flask import Blueprint, flash, render_template, request, session
 import asyncio
 
 from services.api import api
+from utils.auth import login_required
 
 bp = Blueprint("appointments", __name__)
 
@@ -32,6 +33,7 @@ def _maps(pacientes, medicos, especialidades):
 
 
 @bp.get("/")
+@login_required
 def index():
     token = session.get("token")
     try:
@@ -50,6 +52,7 @@ def index():
 
 
 @bp.get("/_form")
+@login_required
 def form_partial():
     token = session.get("token")
     pacientes, medicos, especialidades = _load_catalogs(token)
@@ -78,6 +81,7 @@ def _build_payload(form):
 
 
 @bp.post("/crear")
+@login_required
 def crear():
     token = session.get("token")
     pacientes, medicos, especialidades = _load_catalogs(token)
@@ -116,6 +120,7 @@ def crear():
 
 
 @bp.get("/_table")
+@login_required
 def table_partial():
     token = session.get("token")
     pacientes, medicos, especialidades = _load_catalogs(token)
@@ -133,6 +138,7 @@ def table_partial():
 
 
 @bp.get("/<int:tid>/form")
+@login_required
 def edit_form(tid: int):
     token = session.get("token")
     pacientes, medicos, especialidades = _load_catalogs(token)
@@ -155,6 +161,7 @@ def edit_form(tid: int):
 
 
 @bp.post("/<int:tid>/editar")
+@login_required
 def editar(tid: int):
     token = session.get("token")
     pacientes, medicos, especialidades = _load_catalogs(token)
@@ -195,6 +202,7 @@ def editar(tid: int):
 
 
 @bp.post("/cancelar/<int:tid>")
+@login_required
 def cancelar(tid: int):
     token = session.get("token")
     try:
@@ -216,6 +224,7 @@ def cancelar(tid: int):
 
 
 @bp.get("/<int:tid>/consulta-form")
+@login_required
 def consulta_form(tid: int):
     token = session.get("token")
     turno = asyncio.run(api.get(f"/turnos/{tid}", token=token))
@@ -223,6 +232,7 @@ def consulta_form(tid: int):
 
 
 @bp.post("/<int:tid>/consulta")
+@login_required
 def registrar_consulta(tid: int):
     token = session.get("token")
     turno = asyncio.run(api.get(f"/turnos/{tid}", token=token))
@@ -285,6 +295,7 @@ def registrar_consulta(tid: int):
 
 
 @bp.get("/recordatorio-form/<int:tid>")
+@login_required
 def recordatorio_form(tid: int):
     token = session.get("token")
     turno = asyncio.run(api.get(f"/turnos/{tid}", token=token))
@@ -297,6 +308,7 @@ def recordatorio_form(tid: int):
 
 
 @bp.post("/recordatorio/<int:tid>")
+@login_required
 def programar_recordatorio(tid: int):
     token = session.get("token")
     canal = request.form.get("canal", "EMAIL")
@@ -346,6 +358,7 @@ def programar_recordatorio(tid: int):
 
 
 @bp.get("/_grid")
+@login_required
 def grid():
     token = session.get("token")
     medico_id = request.args.get("medico_id", type=int)

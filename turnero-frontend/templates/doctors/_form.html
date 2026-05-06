@@ -13,6 +13,7 @@
   (6, 'Domingo')
 ] %}
 <form hx-post="{{ action }}" hx-target="#doctors-table" hx-swap="outerHTML">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
   {% if error %}
   <div class="alert-error mb-3">{{ error }}</div>
   {% endif %}

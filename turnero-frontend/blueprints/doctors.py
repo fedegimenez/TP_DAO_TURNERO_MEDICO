@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, session, request
 import asyncio
 
 from services.api import api
+from utils.auth import login_required
 
 bp = Blueprint("doctors", __name__)
 
@@ -15,6 +16,7 @@ def _load_specialties(token):
 
 
 @bp.get("/")
+@login_required
 def index():
     token = session.get("token")
     medicos = _load_doctors(token)
@@ -23,6 +25,7 @@ def index():
 
 
 @bp.get("/_table")
+@login_required
 def table_partial():
     token = session.get("token")
     medicos = _load_doctors(token)
@@ -31,6 +34,7 @@ def table_partial():
 
 
 @bp.get("/_form")
+@login_required
 def form_partial():
     token = session.get("token")
     especialidades = _load_specialties(token)
@@ -44,6 +48,7 @@ def form_partial():
 
 
 @bp.get("/<int:did>/form")
+@login_required
 def form_edit(did: int):
     token = session.get("token")
     medico = asyncio.run(api.get(f"/medicos/{did}", token=token))
@@ -96,6 +101,7 @@ def _payload_from_form(form, include_dni=True):
 
 
 @bp.post("/crear")
+@login_required
 def crear():
     token = session.get("token")
     payload = _payload_from_form(request.form, include_dni=True)
@@ -119,6 +125,7 @@ def crear():
 
 
 @bp.post("/<int:did>/editar")
+@login_required
 def editar(did: int):
     token = session.get("token")
     payload = _payload_from_form(request.form, include_dni=False)
@@ -143,6 +150,7 @@ def editar(did: int):
 
 
 @bp.post("/toggle/<int:did>")
+@login_required
 def toggle(did: int):
     token = session.get("token")
     activo = request.form.get("activo") == "true"

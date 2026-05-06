@@ -8,6 +8,7 @@
 </head>
 <body class="h-full grid place-items-center bg-slate-50">
   <form action="/login" method="post" class="w-full max-w-sm bg-white p-6 rounded-2xl shadow">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <h1 class="text-xl font-semibold mb-4">Ingresar</h1>
     {% include '_flash.html' %}
     <label class="block text-sm mb-2">Email</label>
