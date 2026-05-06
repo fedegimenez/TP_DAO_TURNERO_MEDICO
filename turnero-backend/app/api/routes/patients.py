@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_role
 from app.schemas.patient import PatientCreate, PatientOut, PatientUpdate
 from app.services.patient_service import PatientService
 
@@ -25,7 +25,8 @@ def get_paciente(pid: int, db: Session = Depends(get_db), _=Depends(get_current_
 
 
 @router.post("", response_model=PatientOut)
-def create_paciente(payload: PatientCreate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def create_paciente(payload: PatientCreate, db: Session = Depends(get_db),
+                    _=Depends(require_role("admin", "medico"))):
     try:
         return PatientService.create(db, payload.model_dump())
     except ValueError as exc:
@@ -33,7 +34,8 @@ def create_paciente(payload: PatientCreate, db: Session = Depends(get_db), _=Dep
 
 
 @router.put("/{pid}", response_model=PatientOut)
-def update_paciente(pid: int, payload: PatientUpdate, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def update_paciente(pid: int, payload: PatientUpdate, db: Session = Depends(get_db),
+                    _=Depends(require_role("admin", "medico"))):
     try:
         return PatientService.update(db, pid, payload.model_dump(exclude_unset=True))
     except ValueError as exc:
@@ -41,7 +43,8 @@ def update_paciente(pid: int, payload: PatientUpdate, db: Session = Depends(get_
 
 
 @router.patch("/{pid}/estado")
-def toggle_paciente(pid: int, activo: bool, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def toggle_paciente(pid: int, activo: bool, db: Session = Depends(get_db),
+                    _=Depends(require_role("admin", "medico"))):
     try:
         PatientService.set_estado(db, pid, activo)
     except ValueError as exc:

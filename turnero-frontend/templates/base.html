@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="csrf-token" content="{{ csrf_token() }}"/>
   <title>{% block title %}Turnero{% endblock %}</title>
 
   <!-- Tailwind CDN -->
@@ -88,6 +89,19 @@
   </div>
 
   <script>
+    // attach CSRF token to every htmx-issued state-changing request
+    (function () {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      const token = meta ? meta.getAttribute('content') : null;
+      if (!token) return;
+      document.body.addEventListener('htmx:configRequest', function (evt) {
+        const m = (evt.detail.verb || '').toUpperCase();
+        if (m === 'POST' || m === 'PUT' || m === 'PATCH' || m === 'DELETE') {
+          evt.detail.headers['X-CSRFToken'] = token;
+        }
+      });
+    })();
+
     // init icons
     window.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
 

@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user, get_db
+from app.api.deps import get_current_user, get_db, require_role
 from app.services.appointment_service import AppointmentService
 
 router = APIRouter(prefix="/reportes", tags=["reportes"])
@@ -16,13 +16,14 @@ def rpt_turnos_medico(
     desde: Optional[str] = None,
     hasta: Optional[str] = None,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_role("admin", "medico")),
 ):
     return AppointmentService.reportes_por_medico(db, desde, hasta)
 
 
 @router.get("/turnos-especialidad")
-def rpt_turnos_especialidad(db: Session = Depends(get_db), _=Depends(get_current_user)):
+def rpt_turnos_especialidad(db: Session = Depends(get_db),
+                            _=Depends(require_role("admin", "medico"))):
     return AppointmentService.reportes_por_especialidad(db)
 
 
@@ -33,7 +34,7 @@ def rpt_pacientes_atendidos(
     medico_id: Optional[int] = None,
     especialidad_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    _=Depends(get_current_user),
+    _=Depends(require_role("admin", "medico")),
 ):
     try:
         return AppointmentService.pacientes_atendidos(db, desde, hasta, medico_id, especialidad_id)
@@ -42,7 +43,8 @@ def rpt_pacientes_atendidos(
 
 
 @router.get("/asistencia")
-def rpt_asistencia(desde: str, hasta: str, db: Session = Depends(get_db), _=Depends(get_current_user)):
+def rpt_asistencia(desde: str, hasta: str, db: Session = Depends(get_db),
+                   _=Depends(require_role("admin", "medico"))):
     try:
         return AppointmentService.asistencia_vs_inasistencia(db, desde, hasta)
     except ValueError as exc:

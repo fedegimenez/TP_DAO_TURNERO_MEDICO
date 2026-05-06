@@ -2,6 +2,7 @@ from flask import Blueprint, flash, render_template, request, session
 import asyncio
 
 from services.api import api
+from utils.auth import login_required
 
 bp = Blueprint("patients", __name__)
 
@@ -11,6 +12,7 @@ def _load_patients(token):
 
 
 @bp.get("/")
+@login_required
 def index():
     token = session.get("token")
     try:
@@ -22,6 +24,7 @@ def index():
 
 
 @bp.get("/_table")
+@login_required
 def table_partial():
     token = session.get("token")
     pacientes = _load_patients(token)
@@ -29,11 +32,13 @@ def table_partial():
 
 
 @bp.get("/_form")
+@login_required
 def form_partial():
     return render_template("patients/_form.html", action="/pacientes/crear", method="post", title="Nuevo paciente")
 
 
 @bp.get("/<int:pid>/form")
+@login_required
 def form_edit(pid: int):
     token = session.get("token")
     paciente = asyncio.run(api.get(f"/pacientes/{pid}", token=token))
@@ -63,6 +68,7 @@ def _payload_from_form(form):
 
 
 @bp.post("/crear")
+@login_required
 def crear():
     token = session.get("token")
     payload = _payload_from_form(request.form)
@@ -85,6 +91,7 @@ def crear():
 
 
 @bp.post("/<int:pid>/editar")
+@login_required
 def editar(pid: int):
     token = session.get("token")
     payload = _payload_from_form(request.form)
@@ -108,6 +115,7 @@ def editar(pid: int):
 
 
 @bp.post("/toggle/<int:pid>")
+@login_required
 def toggle(pid: int):
     token = session.get("token")
     activo = request.form.get("activo") == "true"
@@ -120,6 +128,7 @@ def toggle(pid: int):
 
 
 @bp.get("/<int:pid>/historial")
+@login_required
 def historial(pid: int):
     token = session.get("token")
     try:

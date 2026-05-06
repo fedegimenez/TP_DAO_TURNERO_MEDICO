@@ -1,4 +1,5 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, redirect, url_for
+from flask_wtf.csrf import CSRFProtect
 
 from settings import settings
 from blueprints.auth import bp as auth_bp
@@ -9,10 +10,15 @@ from blueprints.specialties import bp as specialties_bp
 from blueprints.appointments import bp as appointments_bp
 from blueprints.reports import bp as reports_bp
 
+csrf = CSRFProtect()
+
+
 def create_app():
     app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config.from_object(settings)
     app.secret_key = settings.SECRET_KEY
+
+    csrf.init_app(app)
 
     # Blueprints...
     app.register_blueprint(auth_bp)

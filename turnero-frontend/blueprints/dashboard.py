@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, session
 import asyncio
 from services.api import api
+from utils.auth import login_required
 
 bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
 @bp.get("/")
+@login_required
 def dashboard_view():
     token = session.get("token")
     # Ejemplo de pequeñas tarjetas con métricas (si el back las provee)

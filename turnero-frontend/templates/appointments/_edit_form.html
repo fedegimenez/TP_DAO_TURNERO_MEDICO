@@ -16,6 +16,7 @@
   <div class="alert-error">{{ error }}</div>
   {% endif %}
   <form hx-post="/turnos/{{ values.id }}/editar" hx-target="#modal-body" hx-swap="innerHTML" class="space-y-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <input type="hidden" name="id" value="{{ values.id }}">
     <div>
       <label class="lbl">Paciente</label>
